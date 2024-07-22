@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <gtk/gtk.h>
+#include <stdio.h>
 
 #include "gtkhelper.h"
 #include "stringhelper.h"
@@ -42,8 +43,24 @@ GtkWidget *create_mixer_controls(struct alsa_card *card) {
 
   // create the Mix X labels on the left and right of the grid
   for (int i = 0; i < card->routing_in_count[PC_MIX]; i++) {
-    char name[10];
+    // sane naming hack
+    // char name[10];
+    char name[16];
     snprintf(name, 10, "Mix %c", i + 'A');
+    // sane naming hack
+    if (strcmp(name, "Mix A") == 0) {
+      char *human_name = "Speaker L";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    } else if (strcmp(name, "Mix B") == 0) {
+      char *human_name = "Speaker R";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    } else if (strcmp(name, "Mix C") == 0) {
+      char *human_name = "Headphones L";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    } else if (strcmp(name, "Mix D") == 0) {
+      char *human_name = "Headphones R";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    }
 
     GtkWidget *l_left = gtk_label_new(name);
     gtk_grid_attach(
@@ -71,6 +88,12 @@ GtkWidget *create_mixer_controls(struct alsa_card *card) {
       continue;
     if (!strstr(elem->name, "Playback Volume"))
       continue;
+
+    // hack: remove unused ports
+    if (strstr(elem->name, "07")) continue;
+    if (strstr(elem->name, "08")) continue;
+    if (strstr(elem->name, "09")) continue;
+    if (strstr(elem->name, "10")) continue;
 
     // extract the mix number and input number from the element name
     int mix_num = elem->name[4] - 'A';
@@ -134,9 +157,40 @@ void update_mixer_labels(struct alsa_card *card) {
       card->routing_srcs, struct routing_src, routing_src_idx
     );
 
+    // hack: skip unused ports
+    if (strcmp(r_src->name, "PCM 3") == 0) continue;
+    if (strcmp(r_src->name, "PCM 4") == 0) continue;
+    if (strcmp(r_src->name, "PCM 5") == 0) continue;
+    if (strcmp(r_src->name, "PCM 6") == 0) continue;
+
     if (r_snk->mixer_label_top) {
-      gtk_label_set_text(GTK_LABEL(r_snk->mixer_label_top), r_src->name);
-      gtk_label_set_text(GTK_LABEL(r_snk->mixer_label_bottom), r_src->name);
+      // sane naming hack!
+      char *name = strdup(r_src->name);
+
+      if (strcmp(name, "DSP 1") == 0) {
+        char *human_name = "P-Bass";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "DSP 2") == 0) {
+        char *human_name = "Telecaster";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "Analogue 3") == 0) {
+        char *human_name = "KO-II L";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "Analogue 4") == 0) {
+        char *human_name = "KO-II R";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "PCM 1") == 0) {
+        char *human_name = "Computer L";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "PCM 2") == 0) {
+        char *human_name = "Computer R";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      }
+
+      // gtk_label_set_text(GTK_LABEL(r_snk->mixer_label_top), r_src->name);
+      // gtk_label_set_text(GTK_LABEL(r_snk->mixer_label_bottom), r_src->name);
+      gtk_label_set_text(GTK_LABEL(r_snk->mixer_label_top), name);
+      gtk_label_set_text(GTK_LABEL(r_snk->mixer_label_bottom), name);
     }
   }
 }

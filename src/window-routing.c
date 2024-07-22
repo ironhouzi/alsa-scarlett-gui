@@ -8,6 +8,7 @@
 #include "stringhelper.h"
 #include "widget-boolean.h"
 #include "window-mixer.h"
+#include <string.h>
 #include "window-routing.h"
 
 static void get_routing_srcs(struct alsa_card *card) {
@@ -856,6 +857,21 @@ static void make_routing_alsa_elem(struct routing_snk *r_snk) {
     if (name_end)
       snprintf(name_end, strlen(name_end) + 1, " %d", elem->lr_num);
 
+    // sane naming hack!
+    if (strcmp(name, "Analogue 1") == 0) {
+      char *human_name = "Speaker L";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    } else if (strcmp(name, "Analogue 2") == 0) {
+      char *human_name = "Speaker R";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    } else if (strcmp(name, "Analogue 5") == 0) {
+      char *human_name = "Headphone L";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    } else if (strcmp(name, "Analogue 6") == 0) {
+      char *human_name = "Headphone R";
+      snprintf(name, strlen(human_name) + 1, "%s", human_name);
+    }
+
     make_snk_routing_widget(r_snk, name, GTK_ORIENTATION_HORIZONTAL);
     free(name);
 
@@ -933,8 +949,26 @@ static void add_routing_widgets(
         0, r_src->port_num + 1, 1, 1
       );
     } else if (r_src->port_category == PC_HW) {
+    // sane naming hack!
+      char *name = strdup(r_src->name);
+
+      if (strcmp(name, "Analogue 1") == 0) {
+        char *human_name = "P-Bass";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "Analogue 2") == 0) {
+        char *human_name = "Telecaster";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "Analogue 3") == 0) {
+        char *human_name = "KO-II L";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      } else if (strcmp(name, "Analogue 4") == 0) {
+        char *human_name = "KO-II R";
+        snprintf(name, strlen(human_name) + 1, "%s", human_name);
+      }
+
       make_src_routing_widget(
-        card, r_src, r_src->name, GTK_ORIENTATION_HORIZONTAL
+        // card, r_src, r_src->name, GTK_ORIENTATION_HORIZONTAL
+        card, r_src, name, GTK_ORIENTATION_HORIZONTAL
       );
       gtk_grid_attach(
         GTK_GRID(card->routing_hw_in_grid), r_src->widget,
